@@ -16,6 +16,14 @@ cd devops-tests/
 git checkout logstash
 ```
 
+## Run with Ansible
+
+Instead of manual compile and run containers you can use Ansible:
+
+```bash
+sudo /usr/local/bin/ansible-playbook -v ./playbook.yml -i 'localhost,'  -c local
+```
+
 ## Compile docker images
 
 ```bash

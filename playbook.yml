@@ -1,0 +1,56 @@
+- hosts: all
+  tasks:
+  - name: check or build Kibana image
+    docker_image: path="./kibana" name="thegameofcode/kibana" state=build
+  - name: check or build Logstash image
+    docker_image: path="./logstash" name="thegameofcode/logstash" state=build
+  - name: check or build Logstash Forwarder image
+    docker_image: path="./logstash-forwarder" name="thegameofcode/logstash-forwarder" state=build
+    
+  - name: Elasticsearch container
+    docker:
+     name: elasticsearch
+     image: elasticsearch:1.4.4
+     state: restarted
+     ports:
+     - "9200:9200"
+     - "9300:9300"
+     
+  - name: Kibana container
+    docker:
+     name: kibana
+     image: thegameofcode/kibana
+     state: restarted
+     links:
+     - elasticsearch
+     ports:
+     - "5601:5601"
+  
+  - name: Logstash container
+    docker:
+     name: logstash
+     image: thegameofcode/logstash
+     state: restarted
+     links:
+     - elasticsearch
+     ports:
+     - "9292:9292"
+     volumes:
+     - "{{ ansible_env.PWD }}/logstash:/etc/logstash"
+     - "{{ ansible_env.PWD }}/logstash/dat:/opt/dat"
+     
+  - name: Logstash Forwarder container
+    docker:
+     name: logstashforwarder
+     image: thegameofcode/logstash-forwarder
+     state: restarted
+     links:
+     - elasticsearch
+     - logstash
+     ports:
+     - "9292:9292"
+     volumes:
+     - "{{ ansible_env.PWD }}/logstash-forwarder:/etc/logstash-forwarder"
+     - "/var/log/syslog:/data/log/system.log"
+     volumes_from:
+     - logstash
