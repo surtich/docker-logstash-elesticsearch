@@ -1,0 +1,31 @@
+elasticsearch:
+  image: elasticsearch:1.4.4
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+kibana:
+  image: thegameofcode/kibana
+  links:
+    - elasticsearch
+  ports:
+    - "5601:5601"
+logstash:
+  image: thegameofcode/logstash
+  links:
+    - elasticsearch
+  volumes:
+    - "$PWD/logstash:/etc/logstash"
+    - "$PWD/logstash/dat:/opt/dat"
+  ports:
+    - "9292:9292"
+logstashforwarder:
+  image: thegameofcode/logstash-forwarder
+  links:
+    - elasticsearch
+    - logstash
+  volumes:
+    - "$PWD/logstash-forwarder:/etc/logstash-forwarder"
+    - "/var/log/syslog:/data/log/system.log"
+  volumes_from:
+    - logstash    
+
